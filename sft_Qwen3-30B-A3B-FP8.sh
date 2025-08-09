@@ -82,10 +82,15 @@ torchrun --standalone --nnodes=1 --nproc_per_node=8 \
     data.val_files=/home/Competition2025/P12/P12U025/data/DeepMath-103K-parquet/data/train-00000-of-00010.parquet \
     data.prompt_key=question \
     data.response_key=r1_solution_1 \
-    data.micro_batch_size_per_gpu=8 \
-    data.max_length=200000 \
+    data.train_batch_size=32 \
+    data.micro_batch_size_per_gpu=4 \
+    data.max_length=4096 \
+    model.fsdp_config.model_dtype=bf16 \
+    data.truncation=right \
     ++data.filter_overlong_prompts=True \
-    model.partial_pretrain=$HOME/model/Qwen3-30B-A3B-FP8 \
+    model.lora_rank=16 \
+    model.lora_alpha=32 \
+    model.partial_pretrain=/home/Competition2025/P12/P12U025/model/Qwen3-30B-A3B-Base \
     trainer.total_epochs=2 \
     trainer.default_local_dir=$HOME/training/sft_Qwen3-30B-A3B-FP8/checkpoints \
     trainer.logger=['console','wandb'] \
@@ -96,6 +101,8 @@ torchrun --standalone --nnodes=1 --nproc_per_node=8 \
 cd $HOME/model/Qwen3-30B-A3B-FP8/checkpoints
 ls -la
 
+#勾配蓄積したいverこれを引数追加
+#     model.enable_gradient_checkpointing=True \
 echo "=== SFT Training Completed ==="
 
 # 最新チェックポイントを自動検出
