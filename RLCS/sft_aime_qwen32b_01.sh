@@ -7,11 +7,11 @@
 #SBATCH --cpus-per-task=240
 #SBATCH --time=12:00:00
 
-mkdir -p ~/training/sft_aime_qwen32b
+mkdir -p ~/training/sft_aime_qwen32b_01
 
-mkdir -p ~/training/sft_aime_qwen32b/checkpoints
+mkdir -p ~/training/sft_aime_qwen32b_01/checkpoints
 
-cd ~/training/sft_aime_qwen32b
+cd ~/training/sft_aime_qwen32b_01
 #基本的なネットワーク設定
 export NCCL_SOCKET_IFNAME=enp25s0np0
 export NVTE_FUSED_ATTN=0
@@ -39,29 +39,30 @@ ulimit -v unlimited
 #データセットに関しては前処理をしました。そのままではカラム名の都合場合で学習できません。
 #YOU_TEAM を wandb の組織名に置き換えてください。
 export WANDB_PROJECT_NAME="llm_2025_rlcs"
-export WANDB_RUN_NAME="Qwen32b_SFT_AIME"
+export WANDB_RUN_NAME="Qwen32b_SFT_AIME_001"
 
 export datasets="/home/Competition2025/P12/P12U025/data"
 
+
 torchrun --standalone --nnodes=1 --nproc_per_node=8 \
     -m verl.trainer.fsdp_sft_trainer \
-    data.train_files=$datasets/AIME2024_QwFullH.parquet \
+    data.train_files=$datasets/amouri_20250808_qwen3-32B_sample/AIME2024_QwFullH_x16.parquet \
     data.val_files=$datasets/AIME2025_Q.parquet \
     data.max_length=4096 \
     data.prompt_key=problem \
     data.response_key=solution \
-    data.train_batch_size=8 \
-    data.micro_batch_size_per_gpu=1 \
+    data.train_batch_size=32 \
+    data.micro_batch_size_per_gpu=4 \
     model.partial_pretrain=/home/Competition2025/P12/shareP12/models/Qwen3-32B \
     trainer.experiment_name=/home/Competition2025/P12/shareP12/models/Qwen3-32B \
     trainer.total_epochs=2 \
     model.lora_rank=32 \
     model.lora_alpha=32 \
     model.fsdp_config.model_dtype=bf16 \
-    trainer.default_local_dir=$HOME/training/sft_aime_qwen32b/checkpoints \
+    trainer.default_local_dir=$HOME/training/sft_aime_qwen32b_01/checkpoints \
     trainer.logger=["console","wandb"] \
     trainer.project_name=$WANDB_PROJECT_NAME \
-    trainer.experiment_name=$WANDB_RUN_NAME | tee ~/training/sft_aime_qwen32b/verl_sft.log
+    trainer.experiment_name=$WANDB_RUN_NAME | tee ~/training/sft_aime_qwen32b_01/verl_sft.log
 
 
 
@@ -70,7 +71,7 @@ torchrun --standalone --nnodes=1 --nproc_per_node=8 \
 # import pandas as pd
 
 # # 元データ読み込み
-# df = pd.read_parquet("AIME2024_QwFullH.parquet")
+# df = pd.read_parquet("AIME2025_Q.parquet")
 
 # # user と assistant を抽出
 # df["problem"] = df["messages"].apply(lambda msgs: msgs[0]["content"])
@@ -80,9 +81,24 @@ torchrun --standalone --nnodes=1 --nproc_per_node=8 \
 # df = df.drop(columns=["messages"])
 
 # # 上書き保存
-# df.to_parquet("AIME2024_QwFullH.parquet", index=False)
+# df.to_parquet("AIME2025_Q.parquet", index=False)
 
-# print("変換完了:", df.shape, "→ AIME2024_QwFullH.parquet に上書き保存しました")
+# print("変換完了:", df.shape, "→ AIME2025_Q.parquet に上書き保存しました")
 # PY
 
 
+
+
+# #カラム名の表示
+# python - <<'PY'
+# import pandas as pd
+
+# # ファイル読み込み（必要に応じてパスを変更）
+# df = pd.read_parquet("AIME2024_QwFullH_x16.parquet")
+
+# # カラム名だけ表示
+# print(df.columns)
+
+# # 最初の数行も見るなら
+# print(df.head())
+# PY
