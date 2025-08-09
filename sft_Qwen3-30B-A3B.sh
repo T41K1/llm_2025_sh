@@ -13,12 +13,12 @@
 #bash ../shareP12/scancel_hatakeyama.sh gpu84
 #srun --partition P12 --nodes=1 --nodelist osk-gpu[84] --gpus-per-node=8  --cpus-per-task=240 --time=30:00:00 --pty bash -i
 
-mkdir -p ~/training/sft_Qwen3-30B-A3B-FP8
-mkdir -p ~/training/sft_Qwen3-30B-A3B-FP8/checkpoints
+mkdir -p ~/training/sft_Qwen3-30B-A3B
+mkdir -p ~/training/sft_Qwen3-30B-A3B/checkpoints
 
 
 
-cd ~/training/sft_Qwen3-30B-A3B-FP8
+cd ~/training/sft_Qwen3-30B-A3B
 
 #基本的なネットワーク設定
 export NCCL_SOCKET_IFNAME=enp25s0np0
@@ -74,7 +74,7 @@ ulimit -v unlimited
 
 
 export WANDB_PROJECT_NAME="competition_sft_deep_math"
-export WANDB_RUN_NAME="Qwen3-30B-A3B-FP8"
+export WANDB_RUN_NAME="Qwen3-30B-A3B"
 
 torchrun --standalone --nnodes=1 --nproc_per_node=8 \
     -m verl.trainer.fsdp_sft_trainer \
@@ -92,13 +92,12 @@ torchrun --standalone --nnodes=1 --nproc_per_node=8 \
     model.lora_alpha=32 \
     model.partial_pretrain=/home/Competition2025/P12/P12U025/model/Qwen3-30B-A3B-Base \
     trainer.total_epochs=2 \
-    trainer.default_local_dir=$HOME/training/sft_Qwen3-30B-A3B-FP8/checkpoints \
+    trainer.default_local_dir=$HOME/training/sft_Qwen3-30B-A3B/checkpoints \
     trainer.logger=['console','wandb'] \
     trainer.project_name=$WANDB_PROJECT_NAME \
-    trainer.experiment_name=$WANDB_RUN_NAME | tee ~/training/sft_Qwen3-30B-A3B-FP8/verl_sft.log
+    trainer.experiment_name=$WANDB_RUN_NAME | tee ~/training/sft_Qwen3-30B-A3B/verl_sft.log
 
-
-cd $HOME/model/Qwen3-30B-A3B-FP8/checkpoints
+cd $HOME/model/Qwen3-30B-A3B/checkpoints
 ls -la
 
 #勾配蓄積したいverこれを引数追加
@@ -107,7 +106,7 @@ echo "=== SFT Training Completed ==="
 
 # 最新チェックポイントを自動検出
 echo "=== Converting to HuggingFace format ==="
-LATEST_CHECKPOINT=$(find $HOME/training/sft_Qwen3-30B-A3B-FP8/checkpoints -name "global_step_*" -type d | sort -V | tail -1)
+LATEST_CHECKPOINT=$(find $HOME/training/sft_Qwen3-30B-A3B/checkpoints -name "global_step_*" -type d | sort -V | tail -1)
 
 if [ -z "$LATEST_CHECKPOINT" ]; then
     echo "❌ No checkpoint found!"
@@ -126,11 +125,11 @@ echo "=== Uploading to HuggingFace ==="
 
 # 適切なリポジトリ名でアップロード
 huggingface-cli upload \
-    Ta1k1/Qwen3-30B-A3B-FP8-SFT-DeepMath \
+    Ta1k1/Qwen3-30B-A3B-SFT-DeepMath \
     $LATEST_CHECKPOINT/huggingface \
     --token $HF_TOKEN
 
-echo "🎉 Complete! Model uploaded to: https://huggingface.co/Ta1k1/Qwen3-8B-SFT-DeepMath"
+echo "🎉 Complete! Model uploaded to: https://huggingface.co/Ta1k1/Qwen3-30B-A3B-SFT-DeepMath"
 echo "📁 Local path: $LATEST_CHECKPOINT/huggingface"
 
 
