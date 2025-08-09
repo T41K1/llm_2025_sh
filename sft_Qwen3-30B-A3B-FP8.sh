@@ -74,7 +74,7 @@ ulimit -v unlimited
 
 
 export WANDB_PROJECT_NAME="competition_sft_deep_math"
-export WANDB_RUN_NAME="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B"
+export WANDB_RUN_NAME="Qwen3-30B-A3B-FP8"
 
 torchrun --standalone --nnodes=1 --nproc_per_node=8 \
     -m verl.trainer.fsdp_sft_trainer \
