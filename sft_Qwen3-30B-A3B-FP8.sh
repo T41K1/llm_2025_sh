@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:8 # GPUが必要な場合
 #SBATCH --nodelist=osk-gpu[84]
 #SBATCH --cpus-per-task=240
-#SBATCH --time=04:00:00
+#SBATCH --time=12:00:00
 
 #srunする場合は以下のように実行
 #bash ../shareP12/scancel_hatakeyama.sh gpu84
