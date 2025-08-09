@@ -1,5 +1,3 @@
-#MoEモデルをsftしてみよう
-
 #!/bin/bash
 #SBATCH --job-name=sft_qwen8b_deep_math
 #SBATCH --partition=P12
@@ -7,7 +5,9 @@
 #SBATCH --gres=gpu:8 # GPUが必要な場合
 #SBATCH --nodelist=osk-gpu[84]
 #SBATCH --cpus-per-task=240
-#SBATCH --time=12:00:00
+#SBATCH --time=30:00:00
+
+#MoEモデルをsftしてみよう
 
 #srunする場合は以下のように実行
 #bash ../shareP12/scancel_hatakeyama.sh gpu84
