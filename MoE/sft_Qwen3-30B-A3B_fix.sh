@@ -10,15 +10,13 @@
 #MoEモデルをsftしてみよう
 
 #srunする場合は以下のように実行
-#bash ../shareP12/scancel_hatakeyama.sh gpu84
-#srun --partition P12 --nodes=1 --nodelist osk-gpu[84] --gpus-per-node=8  --cpus-per-task=240 --time=30:00:00 --pty bash -i
+#bash ../shareP12/scancel_hatakeyama.sh gpu85
+#srun --partition P12 --nodes=1 --nodelist osk-gpu[86] --gpus-per-node=4  --cpus-per-task=120 --time=30:00:00 --pty bash -i
 
-mkdir -p ~/training/sft_Qwen3-30B-A3B
-mkdir -p ~/training/sft_Qwen3-30B-A3B/checkpoints
+mkdir -p ~/training/sft_Qwen3-30B-A3B_fix
+mkdir -p ~/training/sft_Qwen3-30B-A3B_fix/checkpoints
 
-
-
-cd ~/training/sft_Qwen3-30B-A3B
+cd ~/training/sft_Qwen3-30B-A3B_fix
 
 #基本的なネットワーク設定
 export NCCL_SOCKET_IFNAME=enp25s0np0
@@ -74,32 +72,34 @@ ulimit -v unlimited
 
 
 export WANDB_PROJECT_NAME="competition_sft_deep_math"
-export WANDB_RUN_NAME="Qwen3-30B-A3B"
+export WANDB_RUN_NAME="Qwen3-30B-A3B_fix"
 
 torchrun --standalone --nnodes=1 --nproc_per_node=8 \
     -m verl.trainer.fsdp_sft_trainer \
     data.train_files=/home/Competition2025/P12/P12U025/data/DeepMath-103K-parquet/data/train.parquet \
-    data.val_files=/home/Competition2025/P12/P12U025/data/DeepMath-103K-parquet/data/train-00000-of-00010.parquet \
+    data.val_files=/home/Competition2025/P12/P12U025/data/DeepMath-103K-parquet/data/val.parquet \
     data.prompt_key=question \
     data.response_key=r1_solution_1 \
-    data.train_batch_size=32 \
-    data.micro_batch_size_per_gpu=4 \
-    data.max_length=4096 \
+    data.train_batch_size=64 \
+    data.micro_batch_size_per_gpu=1 \
+    data.max_length=8000 \
     model.fsdp_config.model_dtype=bf16 \
     data.truncation=right \
+    +data.dataloader_num_workers=8 \
     ++data.filter_overlong_prompts=True \
     model.lora_rank=16 \
     model.lora_alpha=32 \
     model.partial_pretrain=/home/Competition2025/P12/P12U025/model/Qwen3-30B-A3B-Base \
     trainer.total_epochs=2 \
-    trainer.save_freq =1000 \
-    trainer.save_on_exception=True \
-    trainer.default_local_dir=$HOME/training/sft_Qwen3-30B-A3B/checkpoints \
+    trainer.save_freq=1000 \
+    model.enable_gradient_checkpointing=True \
+    trainer.default_local_dir=$HOME/training/sft_Qwen3-30B-A3B_fix/checkpoints \
     trainer.logger=['console','wandb'] \
+    ++model.fsdp_config.forward_prefetch=True \
     trainer.project_name=$WANDB_PROJECT_NAME \
-    trainer.experiment_name=$WANDB_RUN_NAME | tee ~/training/sft_Qwen3-30B-A3B/verl_sft.log
+    trainer.experiment_name=$WANDB_RUN_NAME | tee ~/training/sft_Qwen3-30B-A3B_fix/verl_sft.log
 
-cd $HOME/model/Qwen3-30B-A3B/checkpoints
+cd $HOME/model/sft_Qwen3-30B-A3B_fix/checkpoints
 ls -la
 
 #勾配蓄積したいverこれを引数追加
@@ -108,7 +108,7 @@ echo "=== SFT Training Completed ==="
 
 # 最新チェックポイントを自動検出
 echo "=== Converting to HuggingFace format ==="
-LATEST_CHECKPOINT=$(find $HOME/training/sft_Qwen3-30B-A3B/checkpoints -name "global_step_*" -type d | sort -V | tail -1)
+LATEST_CHECKPOINT=$(find $HOME/training/sft_Qwen3-30B-A3B_fix/checkpoints -name "global_step_*" -type d | sort -V | tail -1)
 
 if [ -z "$LATEST_CHECKPOINT" ]; then
     echo "❌ No checkpoint found!"
@@ -127,11 +127,11 @@ echo "=== Uploading to HuggingFace ==="
 
 # 適切なリポジトリ名でアップロード
 huggingface-cli upload \
-    Ta1k1/Qwen3-30B-A3B-SFT-DeepMath \
+    Ta1k1/sft_Qwen3-30B-A3B-SFT-DeepMath \
     $LATEST_CHECKPOINT/huggingface \
     --token $HF_TOKEN
 
-echo "🎉 Complete! Model uploaded to: https://huggingface.co/Ta1k1/Qwen3-30B-A3B-SFT-DeepMath"
+echo "🎉 Complete! Model uploaded to: https://huggingface.co/Ta1k1/sft_Qwen3-30B-A3B-SFT-DeepMath"
 echo "📁 Local path: $LATEST_CHECKPOINT/huggingface"
 
 
