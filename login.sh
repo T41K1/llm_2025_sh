@@ -37,7 +37,7 @@ conda activate "$CONDA_PATH"
 
 # --- 非対話ログイン（必要なら） ---
 # HF_TOKEN / WANDB
-
+export HF_TOKEN="hf_token"
 if [[ -n "${HF_TOKEN:-}" ]]; then
   huggingface-cli login --token "$HF_TOKEN"
 else
