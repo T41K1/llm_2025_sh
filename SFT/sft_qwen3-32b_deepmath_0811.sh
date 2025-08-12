@@ -151,7 +151,8 @@ torchrun --standalone --nnodes=1 --nproc_per_node=4 \
   model.lora_alpha=32 \
   model.partial_pretrain=/home/Competition2025/P12/shareP12/models/Qwen3-32B \
   trainer.total_epochs=2 \
-  trainer.save_freq=1288 \
+  trainer.save_freq=500 \
+  trainer.test_freq=500 \
   trainer.default_local_dir=$HOME/training/sft_Qwen3-32B_deepmath_0811/checkpoints \
   trainer.logger=['console','wandb'] \
   trainer.project_name=$WANDB_PROJECT_NAME \
