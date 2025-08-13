@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=240
 #SBATCH --time=50:00:00
 
-#srun --partition P12 --nodes=1 --nodelist osk-gpu[85] --gpus-per-node=4  --cpus-per-task=120 --time=30:00:00 --pty bash -i
+#srun --partition P12 --nodes=1 --nodelist osk-gpu[85] --gpus-per-node=8  --cpus-per-task=120 --time=30:00:00 --pty bash -i
 
 source "$HOME/login.sh"
 

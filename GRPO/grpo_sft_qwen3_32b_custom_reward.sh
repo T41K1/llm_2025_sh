@@ -7,6 +7,7 @@
 #SBATCH --cpus-per-task=240
 #SBATCH --time=50:00:00
 
+
 # Command(s) goes here
 nvidia-smi
 # エラー時に停止
@@ -41,14 +42,17 @@ export WANDB_RUN_NAME="Qwen3_32b_SFT_GRPO_000"
 
 echo "Starting GRPO training..."
 
-# GRPO学習実行
+# GRPO学習実行(omni-math)
 PYTHONUNBUFFERED=1 python -m verl.trainer.main_ppo \
- data.train_files=$HOME/data/gsm8k/train.parquet \
- data.val_files=$HOME/data/gsm8k/test.parquet \
+ data.val_files=/home/Competition2025/P12/P12U025/data/DeepMath-103K-parquet/data/val.parquet \
+ data.train_files=/home/Competition2025/P12/P12U025/data/DeepMath-103K-parquet/data/train.parquet \
+ trainer.n_gpus_per_node=8 \
  data.train_batch_size=128 \
  data.max_prompt_length=256 \
  data.max_response_length=1024 \
  data.dataloader_num_workers=0 \
+ data.prompt_key=question \
+ ++data.response_key=r1_solution_1 \
  custom_reward_function.path=$HOME/custom_reward.py \
  custom_reward_function.name=compute_score \
  actor_rollout_ref.model.path=$HOME/model/Qwen3_SFT_MATH/checkpoints/global_step_116/huggingface \
@@ -66,9 +70,7 @@ PYTHONUNBUFFERED=1 python -m verl.trainer.main_ppo \
  +actor_rollout_ref.actor.fsdp_config.model_dtype=bf16 \
  algorithm.adv_estimator=grpo \
  algorithm.kl_ctrl.kl_coef=0.001 \
- trainer.logger=['console'] \
  trainer.val_before_train=False \
- trainer.n_gpus_per_node=8 \
  trainer.nnodes=1 \
  trainer.save_freq=10 \
  trainer.test_freq=10 \
