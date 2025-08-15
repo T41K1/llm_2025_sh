@@ -11,7 +11,7 @@
 
 #srunする場合は以下のように実行
 #bash ../shareP12/scancel_hatakeyama.sh gpu85
-#srun --partition P12 --nodes=1 --nodelist osk-gpu[86] --gpus-per-node=4  --cpus-per-task=120 --time=30:00:00 --pty bash -i
+#srun --partition P12 --nodes=1 --nodelist osk-gpu[85] --gpus-per-node=8  --cpus-per-task=240 --time=30:00:00 --pty bash -i
 
 mkdir -p ~/training/sft_Qwen3-30B-A3B_fix
 mkdir -p ~/training/sft_Qwen3-30B-A3B_fix/checkpoints

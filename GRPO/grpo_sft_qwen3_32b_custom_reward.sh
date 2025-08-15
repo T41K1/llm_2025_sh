@@ -55,6 +55,7 @@ PYTHONUNBUFFERED=1 python -m verl.trainer.main_ppo \
  ++data.response_key=r1_solution_1 \
  custom_reward_function.path=$HOME/custom_reward.py \
  custom_reward_function.name=compute_score \
+ +data.reward_model_key = r1_solution_1 \
  actor_rollout_ref.model.path=$HOME/model/Qwen3_SFT_MATH/checkpoints/global_step_116/huggingface \
  actor_rollout_ref.actor.optim.lr=5e-7 \
  actor_rollout_ref.actor.ppo_mini_batch_size=64 \

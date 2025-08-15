@@ -1,13 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=sft_qwen3_32b
 #SBATCH --partition=P12
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --gres=gpu:8 # GPUが必要な場合
-#SBATCH --nodelist=osk-gpu[85]
+#SBATCH --nodelist=osk-gpu[84,85]
 #SBATCH --cpus-per-task=240
 #SBATCH --time=50:00:00
 
-#srun --partition P12 --nodes=1 --nodelist osk-gpu[84,85] --gpus-per-node=8  --cpus-per-task=240 --time=30:00:00 --pty bash -i
 
 
 export NCCL_SOCKET_IFNAME=enp25s0np0
@@ -15,25 +14,28 @@ export NVTE_FUSED_ATTN=0
 export NVTE_DEBUG=1
 export NVTE_DEBUG_LEVEL=0
 
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb=64
+
 # distributed settings
-MASTER_ADDR=${1}
+MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
 echo "MASTER_ADDR=${MASTER_ADDR}"
-MASTER_PORT=${2}
+MASTER_PORT=29500
 echo "MASTER_PORT=${MASTER_PORT}"
-NODE_RANK=${3}
+NODE_RANK=${SLURM_PROCID}
 echo "Node rank: "$NODE_RANK
-NNODES=${4}
+NNODES=${SLURM_NNODES}
 echo "Node num: "$NNODES
-GPUS_PER_NODE=${5}
-echo "Node num: "$GPUS_PER_NODE
+GPUS_PER_NODE=8
+echo "GPUs per node: "$GPUS_PER_NODE
+#srun --partition P12 --nodes=1 --nodelist osk-gpu[84,85] --gpus-per-node=8  --cpus-per-task=240 --time=30:00:00 --pty bash -i
+source "$HOME/login.sh"
 
 
-export NCCL_SOCKET_IFNAME=enp25s0np0
 export NVTE_FUSED_ATTN=0
 #CUDA_VISIBLE_DEVICESでトレーニングに使用するGPUの数を制御します。
 #例えば、単一GPUの場合は以下のように設定します：
 #export CUDA_VISIBLE_DEVICES=0
-export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+# export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
 ulimit -v unlimited
 
 
@@ -68,4 +70,9 @@ torchrun --rdzv_backend c10d \
          trainer.default_local_dir=$HOME/training/multinode/sft/checkpoints \
          trainer.logger=['console','wandb'] \
          trainer.project_name=$WANDB_PROJECT_NAME \
-         trainer.experiment_name=$WANDB_RUN_NAME
+         trainer.experiment_name=$WANDB_RUN_NAME \
+         +checkpoint.cpu_offload=true \
+         +fsdp.load_on_cpu=true \
+         +model.init_device=meta \
+         +fsdp.param_init=meta \
+         +fsdp.state_dict_type=sharded \
