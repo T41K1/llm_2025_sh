@@ -21,8 +21,8 @@ GPUS_PER_NODE=$SLURM_GPUS_PER_NODE
 # 実行ごとに新しいディレクトリを作成
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 JOB_ID=${SLURM_JOB_ID:-"manual"}
-CHECKPOINT_DIR="$HOME/training/multinode/sft/checkpoints_${TIMESTAMP}_${JOB_ID}"
-
+# _sft_llama.sh（親スクリプト）
+CHECKPOINT_DIR="$HOME/training/multinode/sft/checkpoints_${SLURM_JOB_ID}"
 # Assume SLURM_JOB_NODELIST is set as environment variable, e.g., "isk-gpu[02-03]"
 input_nodes=$SLURM_JOB_NODELIST
 

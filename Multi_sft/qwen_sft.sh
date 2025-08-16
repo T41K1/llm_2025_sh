@@ -43,13 +43,11 @@ source $HOME/login.sh
 #YOU_TEAM_ENTITY_NAME を wandb の組織名に置き換えてください。
 # export WANDB_ENTITY=""
 export WANDB_PROJECT_NAME="llm_2025_multi_sft"
-export WANDB_RUN_NAME="Qwen3-32B-multi-sft_003"
+export WANDB_RUN_NAME="Qwen3-32B-multi-sft_006_epo4"
 
 
 
-CHECKPOINT_DIR=${CHECKPOINT_DIR:-"$HOME/training/multinode/sft/checkpoints_default"}
-
-
+CHECKPOINT_DIR="$HOME/training/multinode/sft/checkpoints_${SLURM_JOB_ID}"
 
 torchrun --rdzv_backend c10d \
          --rdzv_endpoint ${MASTER_ADDR}:${MASTER_PORT} \
@@ -58,21 +56,21 @@ torchrun --rdzv_backend c10d \
          -m verl.trainer.fsdp_sft_trainer \
          data.train_files=/home/Competition2025/P12/P12U025/data/omni_math_2000/data/train-00000-of-00001.parquet \
          data.val_files=/home/Competition2025/P12/P12U025/data/omni_math_2000/data/validation-00000-of-00001.parquet \
-         data.prompt_key=Question \
-         data.response_key=Answer \
+         data.prompt_key=question \
+         data.response_key=content \
          data.train_batch_size=64 \
          data.micro_batch_size_per_gpu=1 \
          model.fsdp_config.model_dtype=bf16 \
          data.max_length=16384 \
          model.partial_pretrain=/home/Competition2025/P12/shareP12/models/Qwen3-32B \
          trainer.experiment_name=$/home/Competition2025/P12/shareP12/models/Qwen3-32B \
-         trainer.total_epochs=2 \
+         trainer.total_epochs=4 \
          trainer.default_local_dir=$CHECKPOINT_DIR \
          trainer.logger=['console','wandb'] \
          trainer.project_name=$WANDB_PROJECT_NAME \
          trainer.experiment_name=$WANDB_RUN_NAME \
-         trainer.save_freq=100 \
-         trainer.test_freq=100 \
+         trainer.save_freq=28 \
+         trainer.test_freq=28 \
          +model.override_config.attn_implementation=flash_attention_2 \
          +model.use_remove_padding=True \
          +model.use_fused_kernels=True \
