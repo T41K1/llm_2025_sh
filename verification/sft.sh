@@ -73,7 +73,7 @@ torchrun --rdzv_backend c10d \
          data.val_files=/home/Competition2025/P12/P12U025/data/omni_math_2000/data/validation-00000-of-00001.parquet \
          data.prompt_key=question \
          data.response_key=content \
-         data.train_batch_size=32 \
+         data.train_batch_size=24 \
          data.micro_batch_size_per_gpu=1 \
          model.fsdp_config.model_dtype=bf16 \
          data.max_length=8200 \

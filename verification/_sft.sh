@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=training_sft
 #SBATCH -p P06
-#SBATCH --nodelist=osk-gpu[69,71]
+#SBATCH --nodelist=osk-gpu[69,71,72]
 #SBATCH --gpus-per-node=8
 #SBATCH --output=/home/Competition2025/P12/%u/training/multinode/sft/logs/output.out
 #SBATCH --error=/home/Competition2025/P12/%u/training/multinode/sft/logs/error.err
